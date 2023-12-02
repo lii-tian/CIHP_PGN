@@ -8,17 +8,26 @@ import scipy.misc
 import scipy.io as sio
 import cv2
 from glob import glob
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 from utils import *
 
+# N_CLASSES = 20
+# DATA_DIR = './datasets/CIHP'
+# LIST_PATH = './datasets/CIHP/list/val.txt'
+# DATA_ID_LIST = './datasets/CIHP/list/val_id.txt'
+# with open(DATA_ID_LIST, 'r') as f:
+#     NUM_STEPS = len(f.readlines()) 
+# RESTORE_FROM = './checkpoint/CIHP_pgn'
+
+
 N_CLASSES = 20
-DATA_DIR = './datasets/CIHP'
-LIST_PATH = './datasets/CIHP/list/val.txt'
-DATA_ID_LIST = './datasets/CIHP/list/val_id.txt'
+DATA_DIR = './datasets/ss'
+LIST_PATH = './datasets/ss/list/val.txt'
+DATA_ID_LIST = './datasets/ss/list/val_id.txt'
 with open(DATA_ID_LIST, 'r') as f:
     NUM_STEPS = len(f.readlines()) 
 RESTORE_FROM = './checkpoint/CIHP_pgn'
@@ -34,6 +43,7 @@ def main():
         image, label, edge_gt = reader.image, reader.label, reader.edge
         image_rev = tf.reverse(image, tf.stack([1]))
         image_list = reader.image_list
+        print (image_list)
 
     image_batch = tf.stack([image, image_rev])
     label_batch = tf.expand_dims(label, dim=0) # Add one batch dimension.
@@ -141,10 +151,13 @@ def main():
     macc, update_op_acc = tf.contrib.metrics.streaming_accuracy(preds, gt, weights=weights)
 
     # precision and recall
+    #@li
+    print (res_edge.shape, edge_gt_batch.shape)
     recall, update_op_recall = tf.contrib.metrics.streaming_recall(res_edge, edge_gt_batch)
     precision, update_op_precision = tf.contrib.metrics.streaming_precision(res_edge, edge_gt_batch)
 
     update_op = tf.group(update_op_iou, update_op_acc, update_op_recall, update_op_precision)
+
 
     # Which variables to load.
     restore_var = tf.global_variables()
@@ -189,7 +202,7 @@ def main():
         msk = decode_labels(parsing_, num_classes=N_CLASSES)
 
         parsing_im = Image.fromarray(msk[0])
-        # print("here")
+        print("here")
         parsing_im.save('{}/{}_vis.png'.format(parsing_dir, img_id))
         cv2.imwrite('{}/{}.png'.format(parsing_dir, img_id), parsing_[0,:,:,0])
         sio.savemat('{}/{}.mat'.format(parsing_dir, img_id), {'data': scores[0,:,:]})

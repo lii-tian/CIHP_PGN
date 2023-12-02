@@ -1,0 +1,5 @@
+/images/0.jpg /labels/0.png
+/images/1.jpg /labels/1.png
+/images/2.jpg /labels/2.png
+/images/3.jpg /labels/3.png
+/images/4.jpg /labels/4.png
